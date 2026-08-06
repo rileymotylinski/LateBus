@@ -1,4 +1,6 @@
 from requests import get
+import csv
+import os
 
 
 
@@ -31,8 +33,34 @@ class MetroApi():
 
     def get_route_ids(self):
         return [r["route_id"] for r in self.routes()]
+
+def get_bus_schedule():
+    # TODO
+    # pulls static bus schedule from metro
+    # fall back is calling api directly
+    # some sort of check to make sure all routes are on schedule? I don't know if this is always true.
+    pass
+
+ROUTE_IDS = []
+
+
+  
+try:
+    dir = os.path.dirname(__file__)
+    routes = os.path.join(dir,"Schedule", "routes.txt")
+    with open(routes, "r") as csvfile:
+        reader = csv.reader(csvfile)
         
-ROUTE_IDS = MetroApi().get_route_ids()
+        for row in reader:
+            ROUTE_IDS.append(row[0])
+
+except FileNotFoundError:
+
+    get_bus_schedule()
+
+
+
+
 
 
 
