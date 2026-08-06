@@ -1,3 +1,0 @@
-level_id,level_index,level_name
-100,0,Ground
-101,1,Platform Level
