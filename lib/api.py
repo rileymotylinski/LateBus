@@ -41,7 +41,7 @@ class MetroApi():
         return [r["route_id"] for r in self.routes()]
 
     def departures(self,stop_id):
-        return get(self._base_url + f"/{stop_id}").json()
+        return get(self._base_url + f"/{stop_id}").json()["departures"]
 
 def get_bus_schedule():
     # TODO
@@ -51,8 +51,6 @@ def get_bus_schedule():
     pass
 
 STOP_IDS = []
-
-
   
 try:
     dir = os.path.dirname(__file__)

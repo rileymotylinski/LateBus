@@ -1,9 +1,12 @@
-from lib.bus_route import BusStop
+from lib.BusStop import BusStop
 import lib.api
 
-routes = []
+stops: list[BusStop] = []
 
-print(lib.api.STOP_IDS)
+
 for id in lib.api.STOP_IDS:
-    routes.append(BusStop(id))
+    stops.append(BusStop(id))
+
+for s in stops:
+    print(s.next_departure())
 
