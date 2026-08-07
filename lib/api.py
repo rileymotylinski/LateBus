@@ -1,4 +1,5 @@
-from requests import get, Response
+from requests import get
+import pprint
 import csv
 import os
 
@@ -39,8 +40,8 @@ class MetroApi():
     def get_route_ids(self):
         return [r["route_id"] for r in self.routes()]
 
-    def departures(self,route_id, direction_id, place_code):
-        return get(self._base_url + f"/{route_id}/{direction_id}/{place_code}").json()
+    def departures(self,stop_id):
+        return get(self._base_url + f"/{stop_id}").json()
 
 def get_bus_schedule():
     # TODO
@@ -49,21 +50,24 @@ def get_bus_schedule():
     # some sort of check to make sure all routes are on schedule? I don't know if this is always true.
     pass
 
-ROUTE_IDS = []
+STOP_IDS = []
 
 
   
 try:
     dir = os.path.dirname(__file__)
-    routes = os.path.join(dir,"Schedule", "routes.txt")
+    routes = os.path.join(dir,"Schedule", "stops.txt")
+   
     with open(routes, "r") as csvfile:
+        next(csvfile)
         reader = csv.reader(csvfile)
         
         for row in reader:
-            ROUTE_IDS.append(row[0])
+            STOP_IDS.append(row[0])
+            
 
 except FileNotFoundError:
-    print()
+    print("File does not exist")
     get_bus_schedule()
 
 

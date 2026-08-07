@@ -1,15 +1,5 @@
 from lib.api import MetroApi
 
-class BusRoute():
-    def __init__(self, route_id):
-        self.route_id = route_id
-        self.stops = {}
-
-        api = MetroApi()
-
-        if api.is_running(route_id):
-            directions = api.directions(self.route_id)
-            for d in directions:
-                self.stops[d["direction_id"]] = api.stops(self.route_id, d["direction_id"])
-          
-        
+class BusStop():
+    def __init__(self, stop_id):
+        pass 
