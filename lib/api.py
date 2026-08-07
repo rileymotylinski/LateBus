@@ -1,8 +1,6 @@
-from requests import get
+from requests import get, Response
 import csv
 import os
-
-
 
 """
     purpose: handles ALL parsing/calling of data from api
@@ -21,18 +19,28 @@ import os
 class MetroApi():
     def __init__(self):
         self._base_url = "https://svc.metrotransit.org/nextrip"
-        
+    
     def routes(self):
         return get(self._base_url + "/routes").json()
 
+    def _raw_direction_call(self,route_id):
+        # initial call to verify a bus in running/has stops/etc.
+        return get(self._base_url + f"/directions/{route_id}")
+    
+    def is_running(self,route_id):
+        return self._raw_direction_call(route_id).ok
+    
     def directions(self, route_id):
-        return get(self._base_url + f"/directions/{route_id}").json()
+        return self._raw_direction_call(route_id).json()
 
-    def stops(self,route_id, direction_id) -> list[str]:
+    def stops(self,route_id, direction_id):
         return [s["place_code"] for s in get(self._base_url + f"/stops/{route_id}/{direction_id}").json()]
 
     def get_route_ids(self):
         return [r["route_id"] for r in self.routes()]
+
+    def departures(self,route_id, direction_id, place_code):
+        return get(self._base_url + f"/{route_id}/{direction_id}/{place_code}").json()
 
 def get_bus_schedule():
     # TODO
@@ -55,7 +63,7 @@ try:
             ROUTE_IDS.append(row[0])
 
 except FileNotFoundError:
-
+    print()
     get_bus_schedule()
 
 

@@ -7,9 +7,9 @@ class BusRoute():
 
         api = MetroApi()
 
-        directions = api.directions(self.route_id)
-
-        for d in directions:
-            self.stops[d["direction_name"]] = api.stops(self.route_id, d["direction_id"])
-
+        if api.is_running(route_id):
+            directions = api.directions(self.route_id)
+            for d in directions:
+                self.stops[d["direction_id"]] = api.stops(self.route_id, d["direction_id"])
+          
         

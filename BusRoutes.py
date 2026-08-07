@@ -6,4 +6,5 @@ routes = []
 for id in lib.api.ROUTE_IDS:
     routes.append(BusRoute(id))
 
-
+for r in routes:
+    print(r.stops)
