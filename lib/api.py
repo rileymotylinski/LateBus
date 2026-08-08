@@ -41,7 +41,12 @@ class MetroApi():
         return [r["route_id"] for r in self.routes()]
 
     def departures(self,stop_id):
-        return get(self._base_url + f"/{stop_id}").json()["departures"]
+        res =  get(self._base_url + f"/{stop_id}").json()
+        try:
+            return res["departures"]
+        except:
+            print(f"{res["detail"]}: no departures found")
+            return []
 
 def get_bus_schedule():
     # TODO

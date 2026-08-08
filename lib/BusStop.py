@@ -11,4 +11,4 @@ class BusStop():
         if len(departures) != 0:
             return departures[0]
         else:
-            return []
+            return {}
