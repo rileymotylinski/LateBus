@@ -4,11 +4,11 @@ import os
 import csv
 from datetime import datetime
 
-stops: list[BusStop] = []
 
+stops: dict[str, BusStop] = {}
 
 for id in lib.api.STOP_IDS:
-    stops.append(BusStop(id))
+    stops[id] = BusStop(id)
 
 dir = os.path.dirname(__file__)
 stop_times = os.path.join(dir,"lib", "Schedule","stop_times.csv")
@@ -25,6 +25,21 @@ def parse_time(time: str):
         return
     return (int(parts[0]),int(parts[1]),int(parts[2]))
 
+def amend_schedule(real_schedule: list[BusStop], expected_schedule: dict[tuple, datetime]):
+    """
+    1. look at each departure at a given bus stop
+    2. Did it arrive on time?
+    -> query the expected schedule for the real time
+    """
+
+    for stop in real_schedule:
+        
+        for departure in real_schedule[stop].departures:
+            real_time = datetime.fromtimestamp(departure["departure_time"])
+            query = (departure["trip_id"], str(departure["stop_id"]))
+            expected_time = expected_schedule[query]
+            print(real_time - expected_time)
+
 total_invalid = 0
 with open (stop_times, "r",  newline='') as csvfile:
     reader = csv.reader(csvfile)
@@ -38,19 +53,13 @@ with open (stop_times, "r",  newline='') as csvfile:
             total_invalid += 1
             continue
        
-        expected = datetime.today().replace(hour=hour,minute=min, second=second, microsecond=0)
-        scheduled_arrivals[expected] = (trip_id,stop_id)
+        expected = datetime.today().replace(hour=hour,minute=min, second=second)
+        scheduled_arrivals[(trip_id,stop_id)] = expected
 print(f"found {total_invalid} invalid times")
-arrivals = list(scheduled_arrivals.keys())
-arrivals.sort()
-print("sorted")
 
-for s in stops:
-    real_departure = s.next_departure()
-    trip_id = real_departure.get("trip_id", None)
-    if trip_id and real_departure["departure_text"] == "Due" and (trip_id,s.stop_id) in scheduled_arrivals:
-        scheduled_arrival = scheduled_arrivals.get((trip_id,s.stop_id))
-        
-        print(f"left at: {datetime.fromtimestamp(real_departure["departure_time"])} expected: PLACEHOLDEr")
+for i in range(100):
+    stops[lib.api.STOP_IDS[i]].update_departures()
+
+amend_schedule(stops,scheduled_arrivals)
 
 
