@@ -5,8 +5,6 @@ import os
 import csv
 from datetime import datetime
 
-
-
 stops: dict[str, BusStop] = {}
 
 for id in lib.api.STOP_IDS:
@@ -46,10 +44,10 @@ print(f"found {total_invalid} invalid times")
 
 
 eline = BusRoute('925')
-print(eline.stops())
+for s in eline.stops():
+ 
+    print(lib.api.STOP_DESCRIPTION.get(s, "no stop match found"))
 
 # eline route_id: 925
-
-
 
 

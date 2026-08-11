@@ -37,7 +37,7 @@ class MetroApi():
     def stops(self,route_id, direction_id):
         res = get(self._base_url + f"/stops/{route_id}/{direction_id}").json()
         try:
-            return [s["place_code"] for s in res]
+            return [s["description"] for s in res]
         except:
             print(res)
 
@@ -60,6 +60,7 @@ def get_bus_schedule():
     pass
 
 STOP_IDS = []
+STOP_DESCRIPTION = {}
   
 try:
     dir = os.path.dirname(__file__)
@@ -70,8 +71,8 @@ try:
         reader = csv.reader(csvfile)
         
         for row in reader:
-            STOP_IDS.append(row[0])
-            
+            STOP_IDS.append(row[0])   
+            STOP_DESCRIPTION[row[2]] = row[0]    
 
 except FileNotFoundError:
     print("File does not exist")
