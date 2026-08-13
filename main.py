@@ -42,7 +42,7 @@ print(f"found {total_invalid} invalid times")
 
 target_route = '925'
 eline = BusRoute(target_route) # route_id for e line
-
+print(eline.stops)
 eline.route_departures()
 
 

@@ -16,7 +16,6 @@ import os
         - custom solution
 """
 
-
 class MetroApi():
     def __init__(self):
         self._base_url = "https://svc.metrotransit.org/nextrip"
@@ -60,6 +59,23 @@ class MetroApi():
             print(f"{res["detail"]}: no departures found")
             return []
 
+def remove_past(s: str, c: chr):
+    try: 
+        char_location = s.index(c)
+        if  char_location > 0 and char_location < len(s):
+            s = s[:char_location]
+    except:
+        pass
+    return s
+
+def clean_stop_name(stop_name: str):
+    try:
+        if stop_name.lower().index("gate") > 0:
+            stop_name = remove_past(remove_past(stop_name, "-"), "&")
+    except:
+        pass
+    return stop_name.strip()
+
 def get_bus_schedule():
     # TODO
     # pulls static bus schedule from metro
@@ -81,8 +97,10 @@ try:
         reader = csv.reader(csvfile)
         
         for row in reader:
+            stop_id = row[0]
+            stop_description = row[2]
             STOP_IDS.append(row[0])   
-            STOP_DESCRIPTIONS[row[2]] = row[0]    
+            STOP_DESCRIPTIONS[clean_stop_name(stop_description)] =  stop_id    
         csvfile.close()
 
     with open(trips, "r") as csvfile:

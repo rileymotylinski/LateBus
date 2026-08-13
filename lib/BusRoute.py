@@ -11,11 +11,13 @@ class BusRoute:
 
     def route_departures(self):
         for stop in self.stops:
-            print(stop)
+       
             stop_id = STOP_DESCRIPTIONS.get(stop["description"], None)
             if stop_id:
                 for departure in self.api.departures(stop_id):
                     if departure["route_id"] == self.route_id:
-                        print(departure)
-            
+                        pass
+                        # print(departure)
+            else:
+                print(f"unable to find {stop["description"]}")
                 
