@@ -7,7 +7,6 @@ from datetime import datetime
 
 stops: dict[str, BusStop] = {}
 
-
 dir = os.path.dirname(__file__)
 stop_times = os.path.join(dir,"lib", "Schedule","stop_times.csv")
 scheduled_arrivals = {}
@@ -41,20 +40,11 @@ with open (stop_times, "r",  newline='') as csvfile:
         scheduled_arrivals[(trip_id,stop_id)] = expected
 print(f"found {total_invalid} invalid times")
 
+target_route = '925'
+eline = BusRoute(target_route) # route_id for e line
 
-eline = BusRoute('925')
-stop_ids = eline.stops()
-found_stops = []
-for i in range(10):
-    stop_id = lib.api.STOP_DESCRIPTION.get(stop_ids[i], None)
-    print('done')
-    if stop_id:
-        found_stops.append(stop_id)
-
-stops: list[BusStop] = [BusStop(id) for id in found_stops]
-print(stops)
-for i in range(3):
-    print(stops[i].departures)
+for s in eline.stops:
+    
 # eline route_id: 925
 
 

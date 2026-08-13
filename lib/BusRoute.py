@@ -4,10 +4,8 @@ class BusRoute:
     api: MetroApi = MetroApi()
     def __init__(self, route_id):
         self.route_id = str(route_id)
+        self.stops = [self.api.stops(self.route_id,d["direction_id"]) for d in self.api.directions(self.route_id)]
 
-    def stops(self):
-        stops = []
-        for d in self.api.directions(self.route_id):
-            stops += self.api.stops(self.route_id,d["direction_id"])
-        return stops
-
+    def route_departures(self):
+        for direction in self.api.directions(self.route_id):
+            # need a way to match direction -> stop_id

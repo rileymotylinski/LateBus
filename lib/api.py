@@ -1,5 +1,5 @@
 from requests import get
-import pprint
+from collections import defaultdict
 import csv
 import os
 
@@ -35,10 +35,10 @@ class MetroApi():
         return self._raw_direction_call(route_id).json()
 
     def stops(self,route_id, direction_id):
-        res = get(self._base_url + f"/stops/{route_id}/{direction_id}").json()
-        try:
-            return [s["description"] for s in res]
-        except:
+        res = get(self._base_url + f"/stops/{route_id}/{direction_id}")
+        if res.ok()
+            return res.json()
+        else:
             print(res)
 
     def get_route_ids(self):
@@ -52,6 +52,14 @@ class MetroApi():
             print(f"{res["detail"]}: no departures found")
             return []
 
+    def route_departures(self,route_id, direction_id, place_code):
+        res =  get(self._base_url + f"/{route_id}/{direction_id}/{place_code}").json()
+        try:
+            return res
+        except:
+            print(f"{res["detail"]}: no departures found")
+            return []
+
 def get_bus_schedule():
     # TODO
     # pulls static bus schedule from metro
@@ -61,10 +69,12 @@ def get_bus_schedule():
 
 STOP_IDS = []
 STOP_DESCRIPTION = {}
+TRIP_IDS = defaultdict(set)
   
 try:
     dir = os.path.dirname(__file__)
     routes = os.path.join(dir,"Schedule", "stops.txt")
+    trips = os.path.join(dir, "Schedule", "trips.txt")
    
     with open(routes, "r") as csvfile:
         next(csvfile)
@@ -73,6 +83,17 @@ try:
         for row in reader:
             STOP_IDS.append(row[0])   
             STOP_DESCRIPTION[row[2]] = row[0]    
+        csvfile.close()
+
+    with open(trips, "r") as csvfile:
+        next(csvfile)
+        reader = csv.reader(csvfile)
+
+        for row in reader:
+            route_id = row[0]
+            trip_id = row[2]
+            TRIP_IDS[route_id].add(trip_id)
+        csvfile.close()
 
 except FileNotFoundError:
     print("File does not exist")
