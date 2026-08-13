@@ -15,6 +15,7 @@ class BusRoute:
             stop_id = STOP_DESCRIPTIONS.get(stop["description"], None)
             if stop_id:
                 for departure in self.api.departures(stop_id):
-                    print(departure)
+                    if departure["route_id"] == self.route_id:
+                        print(departure)
             
                 
