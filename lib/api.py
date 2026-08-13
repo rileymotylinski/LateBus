@@ -36,7 +36,7 @@ class MetroApi():
 
     def stops(self,route_id, direction_id):
         res = get(self._base_url + f"/stops/{route_id}/{direction_id}")
-        if res.ok()
+        if res.ok:
             return res.json()
         else:
             print(res)
@@ -68,7 +68,7 @@ def get_bus_schedule():
     pass
 
 STOP_IDS = []
-STOP_DESCRIPTION = {}
+STOP_DESCRIPTIONS = {}
 TRIP_IDS = defaultdict(set)
   
 try:
@@ -82,7 +82,7 @@ try:
         
         for row in reader:
             STOP_IDS.append(row[0])   
-            STOP_DESCRIPTION[row[2]] = row[0]    
+            STOP_DESCRIPTIONS[row[2]] = row[0]    
         csvfile.close()
 
     with open(trips, "r") as csvfile:
