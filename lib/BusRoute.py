@@ -4,6 +4,10 @@ from datetime import datetime
 class BusRoute:
     api: MetroApi = MetroApi()
     def __init__(self, route_id):
+        """
+        args:
+        - route_id - metro transit route id. Can be found in `routes.txt`
+        """
         self.route_id = str(route_id)
         self.stops = {}
         # all the stops along an entire route
@@ -13,7 +17,13 @@ class BusRoute:
                 self.stops[stop["place_code"]] = stop["description"]
           
 
-    def route_departures(self):
+    def route_departures(self) -> dict[tuple[str, str], tuple[datetime, datetime]]:
+        """
+        realtime arrival info for a given bus route
+        args: none
+        returns:
+        - dictionary of (trip_id, stop_id) -> (expected_departure, actual_departure)
+        """
         schedule = {}
         for stop in self.stops.values(): # pulls descriptions
             
@@ -24,9 +34,9 @@ class BusRoute:
              
                 for departure in res:
                     ident = (departure["trip_id"], stop_id)
-                    expected_arrival = SCHEDULE.get(ident, None)
-                    if expected_arrival and departure["route_id"] == self.route_id:
-                        arrival_times = (expected_arrival, datetime.fromtimestamp(departure["departure_time"]))
+                    expected_departure = SCHEDULE.get(ident, None)
+                    if expected_departure and departure["route_id"] == self.route_id:
+                        arrival_times = (expected_departure, datetime.fromtimestamp(departure["departure_time"]))
                         schedule[ident] = arrival_times
         return schedule
 
