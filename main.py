@@ -51,10 +51,13 @@ def dump(schedule: dict[tuple[str, str], tuple[datetime, datetime]]):
 
 
 while True:
-    current_schedule.update(eline.route_departures())
-    
-    dump(current_schedule)
-    print("wrote out schedule")
-    time.sleep(POLL_RATE)
+    try:
+        current_schedule.update(eline.route_departures())
+        
+        dump(current_schedule)
+        print("wrote out schedule")
+        time.sleep(POLL_RATE)
+    except:
+        time.sleep(POLL_RATE*4)
 
 
