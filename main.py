@@ -48,7 +48,7 @@ def dump(schedule: dict[tuple[str, str], tuple[datetime, datetime]]):
    
     shutil.move(TEMP_FILE, OUTPUT_FILE)
         
-
+failed_attempts = 0
 
 while True:
     try:
@@ -57,7 +57,14 @@ while True:
         dump(current_schedule)
         print("wrote out schedule")
         time.sleep(POLL_RATE)
+        failed_attempts = 0
     except:
-        time.sleep(POLL_RATE*4)
+        if failed_attempts > 4:
+            print("failed to many times. exiting scripts")
+        else:
+            failed_attempts += 1
+            
+            time.sleep(POLL_RATE*4)
+        
 
 
