@@ -3,7 +3,6 @@ import os
 import time
 from datetime import datetime
 import csv
-from tempfile import NamedTemporaryFile
 import shutil
 
 
@@ -61,6 +60,7 @@ while True:
     except:
         if failed_attempts > 4:
             print("failed to many times. exiting scripts")
+            break
         else:
             failed_attempts += 1
             
