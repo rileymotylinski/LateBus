@@ -33,7 +33,7 @@ def dump(schedule: dict[tuple[str, str], tuple[datetime, datetime]]):
     _init_bus_db()
     cur = con.cursor()
     schedule = [(s[0], s[1], schedule[s][0], schedule[s][1]) for s in schedule]
-    print(schedule[0][2])
+ 
     cur.executemany("""
         INSERT OR REPLACE INTO departures (trip_id, route_id, expected, actual)
         VALUES (?, ?, ?, ?)
@@ -41,6 +41,7 @@ def dump(schedule: dict[tuple[str, str], tuple[datetime, datetime]]):
             expected = excluded.expected,
             actual = excluded.actual
     """, schedule)
+    con.commit()
     cur.close()
 
         
