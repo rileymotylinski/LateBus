@@ -36,7 +36,8 @@ class BusRoute:
                     ident = (departure["trip_id"], stop_id)
                     expected_departure = SCHEDULE.get(ident, None)
                     if expected_departure and departure["route_id"] == self.route_id:
-                        arrival_times = (expected_departure, datetime.fromtimestamp(departure["departure_time"]))
+              
+                        arrival_times = (expected_departure.timestamp(), datetime.fromtimestamp(departure["departure_time"]).timestamp())
                         schedule[ident] = arrival_times
         return schedule
 
