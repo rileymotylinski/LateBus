@@ -24,20 +24,24 @@ def _init_bus_db():
             route_id TEXT,
             expected INTEGER,
             actual INTEGER,
-            PRIMARY KEY (trip_id, route_id)
+            date  TEXT,
+            PRIMARY KEY (trip_id, route_id, date)
         )
     """)
     cur.close()
 
+
+
 def dump(schedule: dict[tuple[str, str], tuple[datetime, datetime]]):
     _init_bus_db()
     cur = con.cursor()
-    schedule = [(s[0], s[1], schedule[s][0], schedule[s][1]) for s in schedule]
+    # TODO: We should only be dumping ON the date the bus stop is happening, right?
+    schedule = [(s[0], s[1], schedule[s][0], schedule[s][1], datetime.fromtimestamp(schedule[s][1]).date().isoformat()) for s in schedule]
  
     cur.executemany("""
-        INSERT OR REPLACE INTO departures (trip_id, route_id, expected, actual)
-        VALUES (?, ?, ?, ?)
-        ON CONFLICT (trip_id, route_id) DO UPDATE SET
+        INSERT OR REPLACE INTO departures (trip_id, route_id, expected, actual, date)
+        VALUES (?, ?, ?, ?, ?)
+        ON CONFLICT (trip_id, route_id, date) DO UPDATE SET
             expected = excluded.expected,
             actual = excluded.actual
     """, schedule)
