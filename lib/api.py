@@ -1,6 +1,7 @@
 from requests import get
 from collections import defaultdict
 from datetime import datetime
+from google.transit import gtfs_realtime_pb2
 import csv
 import os
 
@@ -72,6 +73,12 @@ class MetroApi():
             print(f"{res["detail"]}: no departures found")
             return []
 
+    def gtfs_feed():
+        feed = gtfs_realtime_pb2.FeedMessage()
+        response = get('https://svc.metrotransit.org/mtgtfs/tripupdates.pb')
+        return feed.ParseFromString(response.content)
+
+
 def remove_past(s: str, c: chr):
     try: 
         char_location = s.index(c)
@@ -98,7 +105,7 @@ def get_bus_schedule():
 
 STOP_IDS = [] # list of all stop ids 
 STOP_DESCRIPTIONS = {} # matches "description" -> stop id
-TRIP_IDS = defaultdict(set) # matches route_id -> all trip ids
+TRIP_IDS = defaultdict(set) # matches trip id -> route_id
 SCHEDULE = {} # matches (trip_id, stop_id) -> expected arrival time
 
 def parse_time(time: str):
@@ -140,7 +147,7 @@ try:
         for row in reader:
             route_id = row[0]
             trip_id = row[2]
-            TRIP_IDS[route_id].add(trip_id)
+            TRIP_IDS[trip_id] = route_id
         csvfile.close()
 
     total_invalid = 0
@@ -152,13 +159,18 @@ try:
             trip_id = r[0]
             hour, min, second = parse_time(r[2])
             stop_id = r[3]
+            route_id = TRIP_IDS.get(trip_id, None)
             
             if (hour > 23):
                 total_invalid += 1
                 continue
+
+            if not route_id:
+                print(f"uanble to find route for trip_id: {trip_id}")
         
             expected = datetime.today().replace(hour=hour,minute=min, second=second)
-            SCHEDULE[(trip_id,stop_id)] = expected
+
+            SCHEDULE[route_id][(trip_id, stop_id)] = expected
     print(f"found {total_invalid} invalid times")
 
 except FileNotFoundError:

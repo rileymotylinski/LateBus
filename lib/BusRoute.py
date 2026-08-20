@@ -9,12 +9,8 @@ class BusRoute:
         - route_id - metro transit route id. Can be found in `routes.txt`
         """
         self.route_id = str(route_id)
-        self.stops = {}
-        # all the stops along an entire route
-        for d in self.api.directions(self.route_id):
-            for stop in self.api.stops(self.route_id,d["direction_id"]):
-                
-                self.stops[stop["place_code"]] = stop["description"]
+        self.schedule = {}
+        
           
 
     def route_departures(self) -> dict[tuple[str, str], tuple[datetime, datetime]]:
@@ -24,7 +20,21 @@ class BusRoute:
         returns:
         - dictionary of (trip_id, stop_id) -> (expected_departure, actual_departure)
         """
-        schedule = {}
+
+        updates: int = self.api.gtfs_feed()
+
+        for entity in updates.entity:
+            if entity.trip_update.trip.route_id != self.route_id:
+                continue
+        
+            for delay in entity.trip_update.stop_time_update:
+                key = (entity.trip_update.trip.trip_id, delay.stop_id)
+                if key not in self.schedule: # check whether this update even applies
+                    continue
+                expected = self.schedule[key][0]
+                self.schedule.update({key : (SCHEDULE[key], datetime.fromtimestamp(delay.departure.tim)) })
+
+        """
         for stop in self.stops.values(): # pulls descriptions
             
             stop_id = STOP_DESCRIPTIONS.get(stop, None)
@@ -39,6 +49,7 @@ class BusRoute:
               
                         arrival_times = (expected_departure.timestamp(), datetime.fromtimestamp(departure["departure_time"]).timestamp())
                         schedule[ident] = arrival_times
-        return schedule
+        """
+        return self.schedule
 
                 
