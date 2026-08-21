@@ -22,26 +22,27 @@ def _init_bus_db():
         CREATE TABLE IF NOT EXISTS departures(
             trip_id TEXT,
             route_id TEXT,
+            stop_id TEXT,
             expected INTEGER,
             actual INTEGER,
             date  TEXT,
-            PRIMARY KEY (trip_id, route_id, date)
+            PRIMARY KEY (trip_id, route_id, stop_id, date)
         )
     """)
     cur.close()
 
 
 
-def dump(schedule: dict[tuple[str, str], tuple[datetime, datetime]]):
+def dump(actual_schedule: dict[tuple[str, str], datetime], expected_schedule: dict[tuple[str, str], datetime], route_id):
     _init_bus_db()
     cur = con.cursor()
     # TODO: We should only be dumping ON the date the bus stop is happening, right?
-    schedule = [(s[0], s[1], schedule[s][0], schedule[s][1], datetime.fromtimestamp(schedule[s][1]).date().isoformat()) for s in schedule]
+    schedule = [(s[0],route_id, s[1], actual_schedule[s], expected_schedule[s], datetime.fromtimestamp(actual_schedule[s]).date().isoformat()) for s in schedule]
  
     cur.executemany("""
         INSERT OR REPLACE INTO departures (trip_id, route_id, expected, actual, date)
-        VALUES (?, ?, ?, ?, ?)
-        ON CONFLICT (trip_id, route_id, date) DO UPDATE SET
+        VALUES (?, ?, ?, ?, ?, ?)
+        ON CONFLICT (trip_id, route_id, stop_id, date) DO UPDATE SET
             expected = excluded.expected,
             actual = excluded.actual
     """, schedule)
@@ -54,9 +55,9 @@ failed_attempts = 0
 while True:
   
     try:
-        current_schedule.update(eline.route_departures())
+        eline.update_route_departures()
         
-        dump(current_schedule)
+        # dump(eline.actual_schedule, eline.route_id)
         print("wrote out schedule")
         time.sleep(POLL_RATE)
         failed_attempts = 0

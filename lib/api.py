@@ -73,10 +73,11 @@ class MetroApi():
             print(f"{res["detail"]}: no departures found")
             return []
 
-    def gtfs_feed():
+    def gtfs_feed(self):
         feed = gtfs_realtime_pb2.FeedMessage()
         response = get('https://svc.metrotransit.org/mtgtfs/tripupdates.pb')
-        return feed.ParseFromString(response.content)
+        feed.ParseFromString(response.content)
+        return feed
 
 
 def remove_past(s: str, c: chr):
@@ -106,7 +107,7 @@ def get_bus_schedule():
 STOP_IDS = [] # list of all stop ids 
 STOP_DESCRIPTIONS = {} # matches "description" -> stop id
 TRIP_IDS = defaultdict(set) # matches trip id -> route_id
-SCHEDULE = {} # matches (trip_id, stop_id) -> expected arrival time
+SCHEDULE = defaultdict(dict) # matches (trip_id, stop_id) -> expected arrival time
 
 def parse_time(time: str):
     """

@@ -9,30 +9,35 @@ class BusRoute:
         - route_id - metro transit route id. Can be found in `routes.txt`
         """
         self.route_id = str(route_id)
-        self.schedule = {}
+        self.expected_schedule = SCHEDULE[route_id]
+        self.actual_schedule = SCHEDULE[route_id]
+        
+
         
           
 
-    def route_departures(self) -> dict[tuple[str, str], tuple[datetime, datetime]]:
+    def update_route_departures(self) -> dict[tuple[str, str], datetime]:
         """
         realtime arrival info for a given bus route
         args: none
         returns:
-        - dictionary of (trip_id, stop_id) -> (expected_departure, actual_departure)
+        - dictionary of (trip_id, stop_id) -> actual_departure
         """
-
+     
         updates: int = self.api.gtfs_feed()
-
+        
         for entity in updates.entity:
             if entity.trip_update.trip.route_id != self.route_id:
                 continue
-        
+            
             for delay in entity.trip_update.stop_time_update:
                 key = (entity.trip_update.trip.trip_id, delay.stop_id)
-                if key not in self.schedule: # check whether this update even applies
+             
+                if key not in self.actual_schedule or self.actual_schedule[key] == delay.departure.time: # check whether this update even applies
                     continue
-                expected = self.schedule[key][0]
-                self.schedule.update({key : (SCHEDULE[key], datetime.fromtimestamp(delay.departure.tim)) })
+                actual = datetime.fromtimestamp(delay.departure.time)
+                self.actual_schedule.update({key : actual})
+                
 
         """
         for stop in self.stops.values(): # pulls descriptions
@@ -50,6 +55,7 @@ class BusRoute:
                         arrival_times = (expected_departure.timestamp(), datetime.fromtimestamp(departure["departure_time"]).timestamp())
                         schedule[ident] = arrival_times
         """
-        return self.schedule
+    
+        return self.actual_schedule
 
                 
