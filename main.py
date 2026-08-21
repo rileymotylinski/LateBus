@@ -8,8 +8,8 @@ POLL_RATE = 5 # in seconds
 DATABASE_NAME = "bus.db"
 con = sqlite3.connect(DATABASE_NAME)
 
-target_route = '925'
-eline = BusRoute(target_route) # route_id for e line
+target_routes = ['925', '901','905','120', '121']
+buses = [BusRoute(s) for s in target_routes] 
 
 dir = os.path.dirname(__file__)
 
@@ -52,22 +52,22 @@ def dump(actual_schedule: dict[tuple[str, str], datetime], expected_schedule: di
 failed_attempts = 0
 
 while True:
-  
-    try:
-        eline.update_route_departures()
-        dump(eline.actual_schedule, eline.expected_schedule, eline.route_id)
-        print("wrote out schedule")
-        time.sleep(POLL_RATE)
-        failed_attempts = 0
-    except Exception as e:
-        print(f"{e}")
-        if failed_attempts > 4:
-            print("failed to many times. exiting scripts")
-            break
-        else:
-            failed_attempts += 1
+    for stop in buses:
+        try:
+            stop.update_route_departures()
+            dump(stop.actual_schedule, stop.expected_schedule, stop.route_id)
+            print("wrote out schedule")
             
-            time.sleep(POLL_RATE*4)
-
+            failed_attempts = 0
+        except Exception as e:
+            print(f"{e}")
+            if failed_attempts > 4:
+                print("failed to many times. exiting scripts")
+                break
+            else:
+                failed_attempts += 1
+                
+                time.sleep(POLL_RATE*4)
+    time.sleep(POLL_RATE)
 
 
