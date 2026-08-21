@@ -1,4 +1,4 @@
-from lib.api import MetroApi, STOP_DESCRIPTIONS, SCHEDULE
+from lib.api import MetroApi, SCHEDULE
 from datetime import datetime
 
 class BusRoute:
@@ -10,7 +10,7 @@ class BusRoute:
         """
         self.route_id = str(route_id)
         self.expected_schedule = SCHEDULE[route_id]
-        self.actual_schedule = SCHEDULE[route_id]
+        self.actual_schedule = {} # only gather data for stops we've colelcted while running.
         
 
         
@@ -24,38 +24,21 @@ class BusRoute:
         - dictionary of (trip_id, stop_id) -> actual_departure
         """
      
-        updates: int = self.api.gtfs_feed()
-        
+        updates = self.api.gtfs_feed()
+        i = 0
         for entity in updates.entity:
+            
             if entity.trip_update.trip.route_id != self.route_id:
                 continue
             
             for delay in entity.trip_update.stop_time_update:
+                i += 1
                 key = (entity.trip_update.trip.trip_id, delay.stop_id)
              
-                if key not in self.actual_schedule or self.actual_schedule[key] == delay.departure.time: # check whether this update even applies
+                if key not in self.expected_schedule or self.expected_schedule[key] == delay.departure.time: # check whether this update even applies
                     continue
-                actual = datetime.fromtimestamp(delay.departure.time)
-                self.actual_schedule.update({key : actual})
-                
+                self.actual_schedule[key] = delay.departure.time
 
-        """
-        for stop in self.stops.values(): # pulls descriptions
-            
-            stop_id = STOP_DESCRIPTIONS.get(stop, None)
-      
-            if stop_id:
-                res = self.api.departures(stop_id)
-             
-                for departure in res:
-                    ident = (departure["trip_id"], stop_id)
-                    expected_departure = SCHEDULE.get(ident, None)
-                    if expected_departure and departure["route_id"] == self.route_id:
-              
-                        arrival_times = (expected_departure.timestamp(), datetime.fromtimestamp(departure["departure_time"]).timestamp())
-                        schedule[ident] = arrival_times
-        """
-    
         return self.actual_schedule
 
                 

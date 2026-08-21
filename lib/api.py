@@ -171,7 +171,7 @@ try:
         
             expected = datetime.today().replace(hour=hour,minute=min, second=second)
 
-            SCHEDULE[route_id][(trip_id, stop_id)] = expected
+            SCHEDULE[route_id][(trip_id, stop_id)] = expected.timestamp()
     print(f"found {total_invalid} invalid times")
 
 except FileNotFoundError:
