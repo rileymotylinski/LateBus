@@ -11,12 +11,8 @@ class BusRoute:
         self.route_id = str(route_id)
         self.expected_schedule = SCHEDULE[route_id]
         self.actual_schedule = {} # only gather data for stops we've colelcted while running.
-        
 
-        
-          
-
-    def update_route_departures(self) -> dict[tuple[str, str], datetime]:
+    def update_route_departures(self, updates) -> dict[tuple[str, str], datetime]:
         """
         realtime arrival info for a given bus route
         args: none
@@ -24,15 +20,12 @@ class BusRoute:
         - dictionary of (trip_id, stop_id) -> actual_departure
         """
      
-        updates = self.api.gtfs_feed()
-        i = 0
         for entity in updates.entity:
             
             if entity.trip_update.trip.route_id != self.route_id:
                 continue
             
             for delay in entity.trip_update.stop_time_update:
-                i += 1
                 key = (entity.trip_update.trip.trip_id, delay.stop_id)
              
                 if key not in self.expected_schedule or self.expected_schedule[key] == delay.departure.time: # check whether this update even applies

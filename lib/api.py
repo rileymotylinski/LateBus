@@ -23,61 +23,14 @@ class MetroApi():
     def __init__(self):
         self._base_url = "https://svc.metrotransit.org/nextrip"
 
-    def routes(self):
-
-        return get(self._base_url + "/routes").json()
-
-    def _raw_direction_call(self,route_id):
-
-        # initial call to verify a bus in running/has stops/etc.
-        return get(self._base_url + f"/directions/{route_id}")
-    
-    def is_running(self,route_id):
-
-        return self._raw_direction_call(route_id).ok
-    
-    def directions(self, route_id):
-
-        return self._raw_direction_call(route_id).json()
-
-    def stops(self,route_id, direction_id):
-
-        """
-        metro api does not return __ALL__ stops; i'm not sure why, it is very undocumented
-        """
-        res = get(self._base_url + f"/stops/{route_id}/{direction_id}")
-        if res.ok:
-            return res.json()
-        else:
-            print(res)
-
-    def get_route_ids(self):
-
-        return [r["route_id"] for r in self.routes()]
-
-    def departures(self,stop_id):
- 
-        res =  get(self._base_url + f"/{stop_id}").json()
-        try:
-            return res["departures"]
-        except:
-            print(f"{res["detail"]}: no departures found")
-            return []
-
-    def route_departures(self,route_id, direction_id, place_code):
-   
-        res =  get(self._base_url + f"/{route_id}/{direction_id}/{place_code}").json()
-        try:
-            return res
-        except:
-            print(f"{res["detail"]}: no departures found")
-            return []
-
     def gtfs_feed(self):
         feed = gtfs_realtime_pb2.FeedMessage()
         response = get('https://svc.metrotransit.org/mtgtfs/tripupdates.pb')
-        feed.ParseFromString(response.content)
-        return feed
+        try:
+            feed.ParseFromString(response.content)
+            return feed
+        except:
+            return None
 
 
 def remove_past(s: str, c: chr):
@@ -106,6 +59,7 @@ def get_bus_schedule():
 
 STOP_IDS = [] # list of all stop ids 
 STOP_DESCRIPTIONS = {} # matches "description" -> stop id
+ROUTE_IDS = []
 TRIP_IDS = defaultdict(set) # matches trip id -> route_id
 SCHEDULE = defaultdict(dict) # matches (trip_id, stop_id) -> expected arrival time
 
@@ -123,11 +77,12 @@ def parse_time(time: str):
   
 try:
     dir = os.path.dirname(__file__)
-    routes = os.path.join(dir,"Schedule", "stops.txt")
+    stops = os.path.join(dir,"Schedule", "stops.txt")
     trips = os.path.join(dir, "Schedule", "trips.txt")
+    routes = os.path.join(dir,"Schedule", "routes.txt")
     stop_times = os.path.join(dir,"Schedule", "stop_times.txt")
 
-    with open(routes, "r") as csvfile:
+    with open(stops, "r") as csvfile:
         next(csvfile)
         reader = csv.reader(csvfile)
         
@@ -172,6 +127,12 @@ try:
             expected = datetime.today().replace(hour=hour,minute=min, second=second)
 
             SCHEDULE[route_id][(trip_id, stop_id)] = expected.timestamp()
+    with open(routes, "r") as csvfile:
+        reader = csv.reader(csvfile)
+        next(reader)
+        for row in reader:
+            ROUTE_IDS.append(row[0])
+            
     print(f"found {total_invalid} invalid times")
 
 except FileNotFoundError:
