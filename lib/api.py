@@ -50,15 +50,11 @@ def clean_stop_name(stop_name: str):
         pass
     return stop_name.strip()
 
-def get_bus_schedule():
-    # TODO
-    # pulls static bus schedule from metro
-    # fall back is calling api directly
-    # some sort of check to make sure all routes are on schedule? I don't know if this is always true.
-    pass
 
 STOP_IDS = [] # list of all stop ids 
+STOP_LOCATIONS = {}
 STOP_DESCRIPTIONS = {} # matches "description" -> stop id
+MAX_ROUTE_ID = 925 # always e line
 ROUTE_IDS = []
 TRIP_IDS = defaultdict(set) # matches trip id -> route_id
 SCHEDULE = defaultdict(dict) # matches (trip_id, stop_id) -> expected arrival time
@@ -89,7 +85,11 @@ try:
         for row in reader:
             stop_id = row[0]
             stop_description = row[2]
-            STOP_IDS.append(row[0])   
+            stop_lon = row[5]
+            stop_lat = row[4]
+
+            STOP_IDS.append(stop_id)   
+            STOP_LOCATIONS[stop_id] = ((stop_lon, stop_lat))
             # some stops include mutliple gates; i'm considering them as a single stop
             #  because arrival times will be neglibile between them. this is an obvious trade off, 
             # but the api does not return the gate number from the stop detail so it needs to be done
@@ -132,12 +132,13 @@ try:
         next(reader)
         for row in reader:
             ROUTE_IDS.append(row[0])
+            MAX_ROUTE_ID = max(MAX_ROUTE_ID, row[0])
             
     print(f"found {total_invalid} invalid times")
 
 except FileNotFoundError:
     print("File does not exist")
-    get_bus_schedule()
+
 
 
 
