@@ -2,6 +2,7 @@ from requests import get
 from collections import defaultdict
 from datetime import datetime
 from google.transit import gtfs_realtime_pb2
+import numpy
 import csv
 import os
 
@@ -30,8 +31,7 @@ class MetroApi():
             feed.ParseFromString(response.content)
             return feed
         except:
-            return None
-
+            return None 
 
 def remove_past(s: str, c: chr):
     try: 
@@ -51,11 +51,13 @@ def clean_stop_name(stop_name: str):
     return stop_name.strip()
 
 
-STOP_IDS = [] # list of all stop ids 
-STOP_LOCATIONS = {}
-STOP_DESCRIPTIONS = {} # matches "description" -> stop id
-MAX_ROUTE_ID = 925 # always e line
-ROUTE_IDS = []
+STOP_IDS: list[str] = [] # list of all stop ids 
+STOP_LOCATIONS: dict[int, numpy.array[int,int]] = {}
+STOP_DESCRIPTIONS: dict[str,str] = {} # matches "description" -> stop id
+MAX_ROUTE_ID:int = 925 # always e line
+SHAPE_IDS: dict[tuple[int,str], int] = {} # (route_id, trip_id) -> shape_id
+SHAPES: defaultdict[int, list[numpy.array[int,int,int]]] = defaultdict(list) # shape_id -> [(lat1,lon1, dist_traveled), ...]
+ROUTE_IDS: int = []
 TRIP_IDS = defaultdict(set) # matches trip id -> route_id
 SCHEDULE = defaultdict(dict) # matches (trip_id, stop_id) -> expected arrival time
 
@@ -76,6 +78,7 @@ try:
     stops = os.path.join(dir,"Schedule", "stops.txt")
     trips = os.path.join(dir, "Schedule", "trips.txt")
     routes = os.path.join(dir,"Schedule", "routes.txt")
+    shapes = os.path.join(dir,"Schedule", "shapes.txt")
     stop_times = os.path.join(dir,"Schedule", "stop_times.txt")
 
     with open(stops, "r") as csvfile:
@@ -85,11 +88,12 @@ try:
         for row in reader:
             stop_id = row[0]
             stop_description = row[2]
-            stop_lon = row[5]
+            
             stop_lat = row[4]
+            stop_lon = row[5]
 
             STOP_IDS.append(stop_id)   
-            STOP_LOCATIONS[stop_id] = ((stop_lon, stop_lat))
+            STOP_LOCATIONS[stop_id] = (numpy.array(stop_lat,stop_lon))
             # some stops include mutliple gates; i'm considering them as a single stop
             #  because arrival times will be neglibile between them. this is an obvious trade off, 
             # but the api does not return the gate number from the stop detail so it needs to be done
@@ -97,13 +101,30 @@ try:
         csvfile.close()
 
     with open(trips, "r") as csvfile:
-        next(csvfile)
+        
         reader = csv.reader(csvfile)
+        next(reader)
 
         for row in reader:
             route_id = row[0]
             trip_id = row[2]
+            shape_id = row[7]
+
             TRIP_IDS[trip_id] = route_id
+            SHAPE_IDS[(route_id, trip_id)] = shape_id
+        csvfile.close()
+
+    with open(shapes,"r") as csvfile:
+        reader = csv.reader(csvfile)
+        next(reader)
+
+        for row in reader:
+            shape_id = row[0]
+            lat = row[1]
+            lon = row[2]
+            dist_traveled = row[4]
+
+            SHAPES[shape_id].append(numpy.array(lat,lon,dist_traveled))
         csvfile.close()
 
     total_invalid = 0
@@ -132,7 +153,7 @@ try:
         next(reader)
         for row in reader:
             ROUTE_IDS.append(row[0])
-            MAX_ROUTE_ID = max(MAX_ROUTE_ID, row[0])
+            MAX_ROUTE_ID = max(MAX_ROUTE_ID, int(row[0]))
             
     print(f"found {total_invalid} invalid times")
 
