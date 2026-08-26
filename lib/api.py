@@ -26,9 +26,10 @@ class MetroApi():
 
     def _get_handler(self,url):
         res = get(url)
-        try:
+        print(url)
+        if res.ok:
             return res.json()
-        except:
+        else:
             print(res.status_code)
     def gtfs_feed(self):
 
@@ -40,11 +41,12 @@ class MetroApi():
 
     def directions(self, route_id):
         return self._get_handler(self._base_url + f"/directions/{route_id}")
-    def stops(self,route_id):
+    def stops(self,route_id) -> dict[int, list[dict[str,str]]]:
         res = {}
         for direction in self.directions(route_id):
-            print(direction)
-            res[direction["direction_id"]] = self.stops_dir(route_id, direction)
+            direction_id = direction["direction_id"]
+            
+            res[direction_id] = self.stops_dir(route_id, direction_id)
         return res
     def stops_dir(self,route_id, direction_id):
         return self._get_handler(self._base_url + f"/stops/{route_id}/{direction_id}")
@@ -72,9 +74,10 @@ STOP_DESCRIPTIONS: dict[str,str] = {} # matches "description" -> stop id
 SHAPE_IDS: dict[tuple[int,str], int] = {} # (route_id, trip_id) -> shape_id
 SHAPES: defaultdict[int, list[numpy.array[int,int,int]]] = defaultdict(list) # shape_id -> [(lat1,lon1, dist_traveled), ...]
 ROUTE_IDS: int = []
-HASHED_ROUTE_IDS = {}
+HASHED_ROUTE_IDS = {} # route_id -> linear index
 TRIP_IDS = defaultdict(set) # matches trip id -> route_id
 SCHEDULE = defaultdict(dict) # matches (trip_id, stop_id) -> expected arrival time
+ROUTE_STOP_SEQUENCES = {} # route_id -> {direction_id1 -> {stop_id -> stop_sequence}}
 
 def parse_time(time: str):
     """
@@ -173,11 +176,17 @@ try:
         HASHED_ROUTE_IDS[ROUTE_IDS[i]] = i
     print(f"found {total_invalid} invalid times")
 
+    api = MetroApi()
+    for route_id in ROUTE_IDS:
+        stops = api.stops(route_id)
+        for direction in stops:
+            direction_stops_sequence = {}
+            for i in range(len(stops[direction])):
+                direction_stops_sequence[stops[direction][i]] = i # basically telling you what order the bus stops come in
+            stops[direction] = direction_stops_sequence
+        ROUTE_STOP_SEQUENCES[route_id] = stops
 except FileNotFoundError:
     print("File does not exist")
-
-
-
 
 
 
