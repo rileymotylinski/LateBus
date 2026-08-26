@@ -24,15 +24,30 @@ class MetroApi():
     def __init__(self):
         self._base_url = "https://svc.metrotransit.org/nextrip"
 
-    def gtfs_feed(self):
-        feed = gtfs_realtime_pb2.FeedMessage()
-        response = get('https://svc.metrotransit.org/mtgtfs/tripupdates.pb')
+    def _get_handler(self,url):
+        res = get(url)
         try:
-            feed.ParseFromString(response.content)
-            return feed
+            return res.json()
         except:
-            return None 
+            print(res.status_code)
+    def gtfs_feed(self):
 
+        feed = gtfs_realtime_pb2.FeedMessage()
+        response = self._get_handler('https://svc.metrotransit.org/mtgtfs/tripupdates.pb')
+
+        feed.ParseFromString(response.content)
+        return feed
+
+    def directions(self, route_id):
+        return self._get_handler(self._base_url + f"/directions/{route_id}")
+    def stops(self,route_id):
+        res = {}
+        for direction in self.directions(route_id):
+            print(direction)
+            res[direction["direction_id"]] = self.stops_dir(route_id, direction)
+        return res
+    def stops_dir(self,route_id, direction_id):
+        return self._get_handler(self._base_url + f"/stops/{route_id}/{direction_id}")
 def remove_past(s: str, c: chr):
     try: 
         char_location = s.index(c)
@@ -54,10 +69,10 @@ def clean_stop_name(stop_name: str):
 STOP_IDS: list[str] = [] # list of all stop ids 
 STOP_LOCATIONS: dict[int, numpy.array[int,int]] = {}
 STOP_DESCRIPTIONS: dict[str,str] = {} # matches "description" -> stop id
-MAX_ROUTE_ID:int = 925 # always e line
 SHAPE_IDS: dict[tuple[int,str], int] = {} # (route_id, trip_id) -> shape_id
 SHAPES: defaultdict[int, list[numpy.array[int,int,int]]] = defaultdict(list) # shape_id -> [(lat1,lon1, dist_traveled), ...]
 ROUTE_IDS: int = []
+HASHED_ROUTE_IDS = {}
 TRIP_IDS = defaultdict(set) # matches trip id -> route_id
 SCHEDULE = defaultdict(dict) # matches (trip_id, stop_id) -> expected arrival time
 
@@ -93,7 +108,7 @@ try:
             stop_lon = row[5]
 
             STOP_IDS.append(stop_id)   
-            STOP_LOCATIONS[stop_id] = (numpy.array(stop_lat,stop_lon))
+            STOP_LOCATIONS[stop_id] = (numpy.array((stop_lat,stop_lon)))
             # some stops include mutliple gates; i'm considering them as a single stop
             #  because arrival times will be neglibile between them. this is an obvious trade off, 
             # but the api does not return the gate number from the stop detail so it needs to be done
@@ -124,7 +139,7 @@ try:
             lon = row[2]
             dist_traveled = row[4]
 
-            SHAPES[shape_id].append(numpy.array(lat,lon,dist_traveled))
+            SHAPES[shape_id].append(numpy.array((lat,lon,dist_traveled)))
         csvfile.close()
 
     total_invalid = 0
@@ -153,8 +168,9 @@ try:
         next(reader)
         for row in reader:
             ROUTE_IDS.append(row[0])
-            MAX_ROUTE_ID = max(MAX_ROUTE_ID, int(row[0]))
-            
+    ROUTE_IDS.sort()
+    for i in range(len(ROUTE_IDS)):
+        HASHED_ROUTE_IDS[ROUTE_IDS[i]] = i
     print(f"found {total_invalid} invalid times")
 
 except FileNotFoundError:

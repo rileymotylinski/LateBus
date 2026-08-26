@@ -11,7 +11,7 @@ pip install -r requirements.txt
    whatever's comfortable.
 ```bash
 # after running crontab -e...
-0 8 * * * python3 /home/<MY_USERNAME>/Documents/LateBus/lib/fetch_static_schedule.py
+0 8 * * * python3 /path/to/project/LateBus/lib/fetch_static_schedule.py
 ```
 3. start data collection
 ```bash
