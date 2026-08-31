@@ -1,6 +1,7 @@
-from lib.api import SHAPE_IDS, HASHED_ROUTE_IDS, ROUTE_IDS, STOP_LOCATIONS, SHAPES, ROUTE_STOP_SEQUENCES
+from lib.api import HASHED_ROUTE_IDS, ROUTE_IDS, STOP_LOCATIONS, ROUTE_STOP_SEQUENCES
 from datetime import datetime
 from lib.api import MetroApi
+from math import sqrt
 
 TOTAL_ROUTES = len(ROUTE_IDS)
 ROUTE_STOP_SEQUENCES = {}
@@ -26,17 +27,16 @@ def one_hot_encode(route_id):
 def encode(d: Bus):
     vec = []
 
+    # idea: add direction id to encoded vector? directly?
     vec += one_hot_encode(d.route_id) # encoding route_id
     vec += [1] if d.expected.weekday >= 5 else [0] # weekday/weekend
     vec += [1] if (d.expected.hour >= 6 and d.expected.hour <= 9) or (d.expected.hour >= 15 and (d.expected.hour <= 18 and d.expected.minute <= 30)) else [0] # rush hour (per metro transit)
 
-    vec += [ROUTE_STOP_SEQUENCES[d.route_id][d.direction_id][d.destination_stop_id]]
+    vec += [ROUTE_STOP_SEQUENCES[d.route_id][d.direction_id][d.destination_stop_id]] # stop sequence i.e. the 5th stop is 5
     
-    dest_point = STOP_LOCATIONS[d.destination_stop_id]
-    shape_points = SHAPES[SHAPE_IDS[(d.route_id, d.trip_id)]]
-    min_dist = shape_points[0]
-    for point in shape_points:
-        pass
+    dest_lon, dest_lat = STOP_LOCATIONS[d.destination_stop_id]
+    dist = sqrt((dest_lat - d.lat)**2 + (dest_lon - d.lon))
+    vec += [dist]
 
 
 
