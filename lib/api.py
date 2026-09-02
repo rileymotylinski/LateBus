@@ -23,24 +23,40 @@ class MetroApi():
 
     def __init__(self):
         self._base_url = "https://svc.metrotransit.org/nextrip"
+        self.gtfs_feed = {}
+        self.position_feed ={}
 
     def _get_handler(self,url):
+        """
+        purpose: return raw response from get call, "handles" if the request fails
+        """
         res = get(url)
-        print(url)
+
         if res.ok:
-            return res.json()
+            return res
         else:
             print(res.status_code)
-    def gtfs_feed(self):
 
-        feed = gtfs_realtime_pb2.FeedMessage()
+    def _get_handler_json(self,url):
+        """
+        purpose: strips metadata and returns json from a url
+        """
+        return self._get_handler(url).json()
+    def update_gtfs_feed(self):
+
+        self.gtfs_feed = gtfs_realtime_pb2.FeedMessage()
         response = self._get_handler('https://svc.metrotransit.org/mtgtfs/tripupdates.pb')
 
-        feed.ParseFromString(response.content)
-        return feed
+        self.gtfs_feed.ParseFromString(response.content)
+
+    def update_position_feed(self):
+        self.position_feed = gtfs_realtime_pb2.FeedMessage()
+        response = self._get_handler('https://svc.metrotransit.org/mtgtfs/vehiclepositions.pb')
+
+        self.position_feed.ParseFromString(response.content)
 
     def directions(self, route_id):
-        return self._get_handler(self._base_url + f"/directions/{route_id}")
+        return self._get_handler_json(self._base_url + f"/directions/{route_id}")
     def stops(self,route_id) -> dict[int, list[dict[str,str]]]:
         res = {}
         for direction in self.directions(route_id):
@@ -49,7 +65,7 @@ class MetroApi():
             res[direction_id] = self.stops_dir(route_id, direction_id)
         return res
     def stops_dir(self,route_id, direction_id):
-        return self._get_handler(self._base_url + f"/stops/{route_id}/{direction_id}")
+        return self._get_handler_json(self._base_url + f"/stops/{route_id}/{direction_id}")
 def remove_past(s: str, c: chr):
     try: 
         char_location = s.index(c)
@@ -76,7 +92,7 @@ SHAPES: defaultdict[int, list[numpy.array[int,int,int]]] = defaultdict(list) # s
 ROUTE_IDS: int = []
 HASHED_ROUTE_IDS = {} # route_id -> linear index
 TRIP_IDS = defaultdict(set) # matches trip id -> route_id
-SCHEDULE = defaultdict(dict) # matches (trip_id, stop_id) -> expected arrival time
+SCHEDULE = defaultdict(dict) # matches route_id -> (trip_id, stop_id) -> expected arrival time
 ROUTE_STOP_SEQUENCES = {} # route_id -> {direction_id1 -> {stop_id -> stop_sequence}}
 
 def parse_time(time: str):
@@ -179,10 +195,12 @@ try:
     api = MetroApi()
     for route_id in ROUTE_IDS:
         stops = api.stops(route_id)
+        
         for direction in stops:
+       
             direction_stops_sequence = {}
             for i in range(len(stops[direction])):
-                direction_stops_sequence[stops[direction][i]] = i # basically telling you what order the bus stops come in
+                direction_stops_sequence[stops[direction][i]["place_code"]] = i # basically telling you what order the bus stops come in
             stops[direction] = direction_stops_sequence
         ROUTE_STOP_SEQUENCES[route_id] = stops
 except FileNotFoundError:

@@ -2,7 +2,6 @@ from lib.api import MetroApi, SCHEDULE
 from datetime import datetime
 
 class BusRoute:
-    api: MetroApi = MetroApi()
     def __init__(self, route_id):
         """
         args:
@@ -15,7 +14,8 @@ class BusRoute:
     def update_route_departures(self, updates) -> dict[tuple[str, str], datetime]:
         """
         realtime arrival info for a given bus route
-        args: none
+        args: 
+        - updates: parsed, but otherwise unformatted, gtfs feed
         returns:
         - dictionary of (trip_id, stop_id) -> actual_departure
         """
