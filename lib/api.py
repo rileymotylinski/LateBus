@@ -167,10 +167,10 @@ try:
         next(reader)
         
         for r in reader:
-            trip_id = r[0]
+            trip_id = str(r[0])
             hour, min, second = parse_time(r[2])
-            stop_id = r[3]
-            route_id = TRIP_IDS.get(trip_id, None)
+            stop_id = str(r[3])
+            route_id = str(TRIP_IDS.get(trip_id, None))
             
             if (hour > 23):
                 total_invalid += 1

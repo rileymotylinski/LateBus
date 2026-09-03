@@ -29,6 +29,19 @@ def _init_bus_db():
             PRIMARY KEY (trip_id, route_id, stop_id, date)
         )
     """)
+
+    cur.execute("""
+            CREATE TABLE IF NOT EXISTS positions(
+                route_id TEXT,
+                trip_id TEXT,
+                destination_stop_id TEXT,
+                expected INTEGER,
+                timestamp INTEGER,
+                lat FLOAT,
+                lon FLOAT,
+                direction_id INTEGER
+            )
+        """)
     cur.close()
 
 
@@ -50,8 +63,23 @@ def dump(actual_schedule: dict[tuple[str, str], datetime], expected_schedule: di
     con.commit()
     cur.close()
 
-def dump_positions():
-    pass
+def dump_positions(entries: list[Bus]):
+    _init_bus_db()
+    cur = con.cursor()
+    rows = [[str(b.route_id),
+            str(b.trip_id),
+            str(b.destination_stop_id),
+            int(b.expected.timestamp()),
+            int(b.timestamp.timestamp()),
+            float(b.lat),
+            float(b.lon),
+            int(b.direction_id)] for b in entries]
+    cur.executemany("""
+            INSERT OR REPLACE INTO positions (route_id, trip_id, destination_stop_id, expected, timestamp, lat, lon, direction_id)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """, rows)
+    con.commit()
+    cur.close()
         
 failed_attempts = 0
 
@@ -60,7 +88,7 @@ api = MetroApi()
 
 while True:
     api.update_position_feed()
-    entry = Bus
+    entries = []
     if api.position_feed:
         
         for entity in api.position_feed.entity:
@@ -68,7 +96,7 @@ while True:
             trip_id = entity.vehicle.trip.trip_id
             stop_id = entity.vehicle.stop_id
             if stop_id == None or stop_id == '':
-                print("unable to locate valid stop_id")
+                # a lot of them are missing stop_ids for some reason?
                 continue
             latitude = entity.vehicle.position.latitude
             longitude = entity.vehicle.position.longitude
@@ -92,7 +120,7 @@ while True:
                 print("unable to locate in schedule")
                 continue
 
-            b = Bus(
+            entries.append(Bus(
                     route_id,
                     trip_id,
                     stop_id,
@@ -101,8 +129,9 @@ while True:
                     latitude,
                     longitude,
                     direction_id
-                )
-
+                ))
+            
+        dump_positions(entries)
     print("wrote out schedule")
     time.sleep(POLL_RATE)
 
