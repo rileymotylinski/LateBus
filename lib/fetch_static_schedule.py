@@ -7,8 +7,6 @@ filename = "gtfs.zip"
 target_directory = "./lib/Schedule"
 download_location = os.path.join(target_directory,filename)
 
-
-
 current_schedule_contents = os.listdir(target_directory)
 for file in current_schedule_contents:
     os.remove(os.path.join(target_directory,file))

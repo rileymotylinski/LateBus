@@ -1,4 +1,4 @@
-from lib.api import HASHED_ROUTE_IDS, ROUTE_IDS, STOP_LOCATIONS, ROUTE_STOP_SEQUENCES
+from lib.metro_constants import HASHED_ROUTE_IDS, ROUTE_IDS, STOP_LOCATIONS, ROUTE_STOP_SEQUENCES
 from datetime import datetime
 from lib.api import MetroApi
 from math import sqrt
@@ -28,7 +28,7 @@ def encode(d: Bus):
 
     # idea: add direction id to encoded vector? directly?
     vec += one_hot_encode(d.route_id) # encoding route_id
-    vec += [1] if d.expected.weekday >= 5 else [0] # weekday/weekend
+    vec += [1] if (d.expected.weekday() >= 5) else [0] # weekday/weekend
     vec += [1] if (d.expected.hour >= 6 and d.expected.hour <= 9) or (d.expected.hour >= 15 and (d.expected.hour <= 18 and d.expected.minute <= 30)) else [0] # rush hour (per metro transit)
 
     vec += [ROUTE_STOP_SEQUENCES[d.route_id][d.direction_id][d.destination_stop_id]] # stop sequence i.e. the 5th stop is 5
