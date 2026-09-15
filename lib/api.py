@@ -53,8 +53,8 @@ class MetroApi():
 
     def directions(self, route_id: str):
         return self._get_handler_json(self._base_url + f"/directions/{route_id}")
-    def stops(self,route_id: str) -> dict[int, list[dict[int,int]]]:
-        res: dict[int, list[dict[int,int]]] = {}
+    def stops(self,route_id: str) -> dict[int, list[dict[str,str]]]:
+        res: dict[int, list[dict[str,str]]] = {}
         for direction in self.directions(route_id):
             direction_id: int = direction["direction_id"]
             

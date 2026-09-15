@@ -135,13 +135,14 @@ try:
     api = MetroApi()
     all_stops = {}
     for route_id in ROUTE_IDS:
-        temp: dict[int, list[dict[int, int]]] = api.stops(route_id)
+        temp: dict[int, list[dict[str, str]]] = api.stops(route_id)
         
-        for direction in stops:
+        for direction in temp:
        
-            direction_stops_sequence: dict[int, int] = {}
+            direction_stops_sequence: dict[str, int] = {}
+            
             for i in range(len(temp[direction])):
-                direction_stops_sequence[stops[direction][i]["place_code"]] = i # basically telling you what order the bus stops come in
+                direction_stops_sequence[temp[direction][i]["place_code"]] = i # basically telling you what order the bus stops come in
             all_stops[direction] = direction_stops_sequence
         ROUTE_STOP_SEQUENCES[route_id] = stops
 except FileNotFoundError:
