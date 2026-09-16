@@ -48,12 +48,12 @@ def parse_time(time: str) -> tuple[int,int,int]:
 
   
 try:
-    dir = os.path.dirname(__file__)
-    stops = os.path.join(dir,"Schedule", "stops.txt")
-    trips = os.path.join(dir, "Schedule", "trips.txt")
-    routes = os.path.join(dir,"Schedule", "routes.txt")
-    shapes = os.path.join(dir,"Schedule", "shapes.txt")
-    stop_times = os.path.join(dir,"Schedule", "stop_times.txt")
+    dir = os.path.join(os.path.dirname(__file__), "..", "Schedule")
+    stops = os.path.join(dir, "stops.txt")
+    trips = os.path.join(dir, "trips.txt")
+    routes = os.path.join(dir, "routes.txt")
+    shapes = os.path.join(dir, "shapes.txt")
+    stop_times = os.path.join(dir, "stop_times.txt")
 
     with open(stops, "r") as csvfile:
         next(csvfile)
@@ -145,5 +145,5 @@ try:
                 direction_stops_sequence[temp[direction][i]["place_code"]] = i # basically telling you what order the bus stops come in
             all_stops[direction] = direction_stops_sequence
         ROUTE_STOP_SEQUENCES[route_id] = stops
-except FileNotFoundError:
-    print("File does not exist")
+except FileNotFoundError as e:
+    print(f"{e} File does not exist")

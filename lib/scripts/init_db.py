@@ -5,7 +5,7 @@ import csv
 purpose: to restore a backup of a database should the data get screwed up
 """
 
-def init_bus_db():
+def init_bus_db(con: sqlite3.Connection):
     cur = con.cursor()
 
     cur.execute("""

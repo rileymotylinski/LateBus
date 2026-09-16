@@ -1,5 +1,6 @@
 from lib.classes.BusRoute import BusRoute
-from lib.scripts.metro_constants import ROUTE_IDS, MetroApi, SCHEDULE
+from lib.scripts.metro_constants import ROUTE_IDS, SCHEDULE
+from lib.classes.api import MetroApi
 import os
 import time
 from datetime import datetime
@@ -10,16 +11,14 @@ from lib.scripts.init_db import init_bus_db
 POLL_RATE = 5 # in seconds
 DATABASE_NAME = "bus.db"
 con = sqlite3.connect(DATABASE_NAME)
-
+init_bus_db(con)
 
 buses = [BusRoute(s) for s in ROUTE_IDS] 
 
 dir = os.path.dirname(__file__)
 
-
-
 def dump_positions(entries: list[PositionSnapshot]):
-    init_bus_db()
+    init_bus_db(con)
     cur = con.cursor()
     rows = [[str(b.route_id),
             str(b.trip_id),
@@ -30,7 +29,7 @@ def dump_positions(entries: list[PositionSnapshot]):
             float(b.lon),
             int(b.direction_id)] for b in entries]
     cur.executemany("""
-            INSERT OR REPLACE INTO positions (route_id, trip_id, destination_stop_id, expected, timestamp, lat, lon, direction_id)
+            INSERT INTO positions (route_id, trip_id, destination_stop_id, expected, timestamp, lat, lon, direction_id)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """, rows)
     con.commit()
@@ -68,11 +67,11 @@ while True:
 
             expected_arrival = SCHEDULE.get(route_id, None)
             if not expected_arrival or expected_arrival == {}:
-                print("unable to locate in schedule")
+                # print("unable to locate in schedule")
                 continue
             expected_arrival = expected_arrival.get((trip_id, stop_id), None)
             if not expected_arrival or expected_arrival == {}:
-                print("unable to locate in schedule")
+                # print("unable to locate in schedule")
                 continue
 
             entries.append(PositionSnapshot(
