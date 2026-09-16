@@ -1,4 +1,4 @@
-from lib.metro_constants import SCHEDULE
+from lib.scripts.metro_constants import SCHEDULE
 from datetime import datetime
 
 class BusRoute:

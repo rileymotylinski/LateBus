@@ -1,4 +1,4 @@
-from lib.api import MetroApi
+from lib.classes.api import MetroApi
 
 api = MetroApi()
 

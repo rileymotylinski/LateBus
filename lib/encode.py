@@ -1,29 +1,18 @@
-from lib.metro_constants import HASHED_ROUTE_IDS, ROUTE_IDS, STOP_LOCATIONS, ROUTE_STOP_SEQUENCES
-from datetime import datetime
-from lib.api import MetroApi
+from lib.scripts.metro_constants import HASHED_ROUTE_IDS, ROUTE_IDS, STOP_LOCATIONS, ROUTE_STOP_SEQUENCES
+from lib.classes.PositionSnapshot import PositionSnapshot
+from lib.classes.api import MetroApi
 from math import sqrt
 
 TOTAL_ROUTES = len(ROUTE_IDS)
 ROUTE_STOP_SEQUENCES = {}
 api = MetroApi()
 
-class Bus:
-    def __init__(self,route_id, trip_id, destination_stop_id, expected: int,timestamp: int, lat: float, lon: float, direction_id: int):
-        self.route_id = route_id
-        self.trip_id = trip_id
-        self.destination_stop_id = destination_stop_id
-        self.expected = datetime.fromtimestamp(expected)
-        self.timestamp = datetime.fromtimestamp(timestamp)
-        self.lat = lat
-        self.lon = lon
-        self.direction_id = direction_id
-
 def one_hot_encode(route_id):
     vec = [0] * TOTAL_ROUTES
     vec[HASHED_ROUTE_IDS[route_id]] = 1
     return vec
 
-def encode(d: Bus):
+def encode(d: PositionSnapshot):
     vec = []
 
     # idea: add direction id to encoded vector? directly?

@@ -19,7 +19,7 @@ class MetroApi():
     def __init__(self):
         self._base_url: str = "https://svc.metrotransit.org/nextrip"
         self.gtfs_feed = {}
-        self.position_feed ={}
+        self.position_feed = None
 
     def _get_handler(self,url: str) -> Response:
         """

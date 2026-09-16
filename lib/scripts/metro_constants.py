@@ -4,7 +4,7 @@ import os
 import csv
 from datetime import datetime
 from numpy.typing import NDArray
-from lib.api import MetroApi
+from lib.classes.api import MetroApi
 
 def remove_past(s: str, c: str):
     try: 
