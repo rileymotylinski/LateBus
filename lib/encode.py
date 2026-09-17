@@ -24,7 +24,7 @@ def encode(d: PositionSnapshot):
 
     # as-the-crow-flies distance
     dest_lon, dest_lat = STOP_LOCATIONS[d.destination_stop_id]
-    dist = sqrt((dest_lat - d.lat)**2 + (dest_lon - d.lon))
+    dist = sqrt((dest_lat - d.lat)**2 + (dest_lon - d.lon)**2)
     vec += [dist]
 
 

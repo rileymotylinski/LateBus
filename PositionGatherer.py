@@ -8,7 +8,7 @@ import sqlite3
 from lib.classes.PositionSnapshot import PositionSnapshot
 from lib.scripts.init_db import init_bus_db
 
-POLL_RATE = 5 # in seconds
+POLL_RATE = 600 # in seconds
 DATABASE_NAME = "bus.db"
 con = sqlite3.connect(DATABASE_NAME)
 init_bus_db(con)

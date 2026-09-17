@@ -62,6 +62,7 @@ class MetroApi():
                 direction_id: int = direction["direction_id"]
             except:
                 print(direction)
+                continue
             stops_dir = self.stops_dir(route_id, str(direction_id))
             res[direction_id] = stops_dir
         return res

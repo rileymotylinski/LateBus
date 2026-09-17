@@ -32,6 +32,7 @@ SHAPES: defaultdict[str, list[NDArray]] = defaultdict(list) # shape_id -> [(lat1
 ROUTE_IDS: list[str] = []
 HASHED_ROUTE_IDS = {} # route_id -> linear index
 TRIP_IDS: dict[str, str] = {} # matches trip_id -> route_id
+TRIPS: dict[str, list[str]] = defaultdict(list) # matches route_id -> trip_ids
 SCHEDULE = defaultdict(dict) # matches route_id -> (trip_id, stop_id) -> expected arrival time
 ROUTE_STOP_SEQUENCES = {} # route_id -> {direction_id1 -> {stop_id -> stop_sequence}}
 
@@ -85,6 +86,7 @@ try:
             shape_id = row[7]
 
             TRIP_IDS[trip_id] = route_id
+            TRIPS[route_id].append(trip_id)
             SHAPE_IDS[(route_id, trip_id)] = shape_id
         csvfile.close()
 
@@ -109,6 +111,10 @@ try:
         for r in reader:
             trip_id = str(r[0])
             hour, min, second = parse_time(r[2])
+            if (hour,min,second) == (0,0,0):
+                print("failed to parse time")
+                continue
+            
             stop_id = str(r[3])
             route_id = str(TRIP_IDS.get(trip_id, None))
             
@@ -118,7 +124,7 @@ try:
 
             if not route_id:
                 print(f"uanble to find route for trip_id: {trip_id}")
-        
+            
             expected = datetime.today().replace(hour=hour,minute=min, second=second)
 
             SCHEDULE[route_id][(trip_id, stop_id)] = expected.timestamp()
