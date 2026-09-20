@@ -20,7 +20,7 @@ def dump(actual_schedule: dict[tuple[str, str], float], expected_schedule: dict[
     for s in actual_schedule:
         if actual_schedule[s] == 0:
             continue
-        rows.append((s[0],route_id, s[1], actual_schedule[s], expected_schedule[s], datetime.today().date().isoformat()))
+        rows.append((s[0],route_id, s[1], actual_schedule[s], expected_schedule[s], datetime.now().date().isoformat()))
 
     cur.executemany("""
         INSERT OR REPLACE INTO departures (trip_id, route_id, stop_id, expected, actual, date)

@@ -27,10 +27,11 @@ def dump_positions(entries: list[PositionSnapshot]):
             int(b.timestamp.timestamp()),
             float(b.lat),
             float(b.lon),
-            int(b.direction_id)] for b in entries]
+            int(b.direction_id),
+            datetime.now().timestamp()] for b in entries]
     cur.executemany("""
-            INSERT INTO positions (route_id, trip_id, destination_stop_id, expected, timestamp, lat, lon, direction_id)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO positions (route_id, trip_id, destination_stop_id, expected, timestamp, lat, lon, direction_id, recorded_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, rows)
     con.commit()
     cur.close()

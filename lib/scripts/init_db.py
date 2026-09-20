@@ -29,7 +29,8 @@ def init_bus_db(con: sqlite3.Connection):
                 timestamp INTEGER,
                 lat FLOAT,
                 lon FLOAT,
-                direction_id INTEGER
+                direction_id INTEGER,
+                recorded_at INTEGER
             )
         """)
     cur.close()

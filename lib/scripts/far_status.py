@@ -1,4 +1,9 @@
 from lib.scripts.metro_constants import SHAPES, SHAPE_IDS, TRIPS
+
+"""
+purpose: calculates average distance between stops
+"""
+
 total_points = 0
 distances = []
 for route_id in TRIPS:
@@ -26,5 +31,5 @@ for route_id in TRIPS:
             distances.append(dist)
             prev_dist_traveled = float(point[2])
 
-print(sum(distances) / total_points) # average distance traveled
+AVG_DIST_BETWEEN_STOPS = sum(distances) / total_points # average distance traveled
 

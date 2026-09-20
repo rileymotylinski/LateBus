@@ -30,7 +30,8 @@ class MetroApi():
         if res.ok:
             return res
         else:
-            print(f"failed with: {res.status_code}")
+            
+            print(f"failed with: {res.status_code}, {res.json()}")
             return None
 
     def update_gtfs_feed(self):
